@@ -24,7 +24,7 @@ exports.format = {
             i;
 
         test.expect(test.length);
-        
+
         for (i = 0; i < tests.length; i++) {
             format = n.format(test[i]);
             test.strictEqual(n.value(), value, 'value unchanged after format' + test[i]);
@@ -75,6 +75,18 @@ exports.format = {
                 [-5444333222111, '0,0 aB', '-5,444 b'],
                 [-5444333222111, '0,0 aT', '-5 t'],
                 [123456, '0.0[0] aK', '123.46 k'],
+
+                // omit abbreviations
+                [2000000000,'0.0a~','2.0'],
+                [1230974,'0.0a~','1.2'],
+                [1460,'0a~','1'],
+                [-104000,'0 a~','-104'],
+                [-5444333222111, '0,0 aK~', '-5,444,333,222'],
+                [-5444333222111, '0,0 aM~', '-5,444,333'],
+                [-5444333222111, '0,0 aB~', '-5,444'],
+                [-5444333222111, '0,0 aT~', '-5'],
+                [123456, '0.0[0] aK~', '123.46'],
+
             ],
             i;
 
@@ -96,6 +108,7 @@ exports.format = {
                 [-1000.234,'(0,0$)','(1,000$)'],
                 [-1000.234,'$0.00','-$1000.23'],
                 [1230974,'($0.00 a)','$1.23 m'],
+                [1230974,'($0.00 a~)','$1.23'],
 
                 // test symbol position before negative sign / open parens
                 [-1000.234,'$ (0,0)','$ (1,000)'],
@@ -132,7 +145,15 @@ exports.format = {
                 [1024*1024*5,'0b','5MB'],
                 [1024*1024*1024*7.343,'0.[0] b','7.3 GB'],
                 [1024*1024*1024*1024*3.1536544,'0.000b','3.154TB'],
-                [1024*1024*1024*1024*1024*2.953454534534,'0b','3PB']
+                [1024*1024*1024*1024*1024*2.953454534534,'0b','3PB'],
+
+                // omit abbreviations
+                [100,'0b~','100'],
+                [1024*2,'0 b~','2'],
+                [1024*1024*5,'0b~','5'],
+                [1024*1024*1024*7.343,'0.[0] b~','7.3'],
+                [1024*1024*1024*1024*3.1536544,'0.000b~','3.154'],
+                [1024*1024*1024*1024*1024*2.953454534534,'0b~','3']
             ],
             i;
 
@@ -150,7 +171,13 @@ exports.format = {
                 [1,'0%','100%'],
                 [0.974878234,'0.000%','97.488%'],
                 [-0.43,'0 %','-43 %'],
-                [0.43,'(0.00[0]%)','43.00%']
+                [0.43,'(0.00[0]%)','43.00%'],
+
+                // omit symbol
+                [1,'0%~','100'],
+                [0.974878234,'0.000%~','97.488'],
+                [-0.43,'0 %~','-43'],
+                [0.43,'(0.00[0]%~)','43.00']
             ],
             i;
 
@@ -179,7 +206,7 @@ exports.format = {
 
         test.done();
     },
-    
+
     rounding: function (test) {
       var tests = [
             // value, format string, expected w/ floor, expected w/ ceil
@@ -190,19 +217,19 @@ exports.format = {
             [-0.433,'0 %','-44 %', '-43 %']
         ],
         i;
-      
+
       test.expect(tests.length * 2);
-      
+
       for (i = 0; i < tests.length; i++) {
           // floor
           test.strictEqual(numeral(tests[i][0]).format(tests[i][1], Math.floor), tests[i][2], tests[i][1] + ", floor");
-          
+
           // ceil
-          test.strictEqual(numeral(tests[i][0]).format(tests[i][1], Math.ceil), tests[i][3], tests[i][1] + ", ceil"); 
-         
+          test.strictEqual(numeral(tests[i][0]).format(tests[i][1], Math.ceil), tests[i][3], tests[i][1] + ", ceil");
+
       }
-      
+
       test.done();
-      
+
     },
 };

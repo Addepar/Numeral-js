@@ -189,7 +189,9 @@
     function formatPercentage (n, format, roundingFunction) {
         var space = '',
             output,
-            value = n._value * 100;
+            value = n._value * 100,
+            omitPercent = false,
+            percentSymbol = '%';
 
         // check for space before %
         if (format.indexOf(' %') > -1) {
@@ -199,14 +201,22 @@
             format = format.replace('%', '');
         }
 
+        omitPercent = format.indexOf('~') > -1;
+        format = format.replace('~', '');
+        if (omitPercent) {
+            space = '';
+            percentSymbol = '';
+        } else {
+            percentSymbol = '%';
+        }
         output = formatNumber(value, format, roundingFunction);
-        
+
         if (output.indexOf(')') > -1 ) {
             output = output.split('');
-            output.splice(-1, 0, space + '%');
+            output.splice(-1, 0, space + percentSymbol);
             output = output.join('');
         } else {
-            output = output + space + '%';
+            output = output + space + percentSymbol;
         }
 
         return output;
@@ -249,6 +259,7 @@
             abbrB = false, // force abbreviation to billions
             abbrT = false, // force abbreviation to trillions
             abbrForce = false, // force abbreviation
+            omitAbbr = false,
             bytes = '',
             ord = '',
             abs = Math.abs(value),
@@ -290,7 +301,9 @@
                     abbr = ' ';
                 }
 
-                format = format.replace(new RegExp(abbr + 'a[KMBT]?'), '');
+                omitAbbr = format.indexOf('~') > -1;
+
+                format = format.replace(new RegExp(abbr + 'a[KMBT]?~?'), '');
 
                 if (abs >= Math.pow(10, 12) && !abbrForce || abbrT) {
                     // trillion
@@ -320,6 +333,10 @@
                 } else {
                     format = format.replace('b', '');
                 }
+
+                omitAbbr = format.indexOf('~') > -1;
+
+                format = format.replace(new RegExp('~'), '');
 
                 for (power = 0; power <= suffixes.length; power++) {
                     min = Math.pow(1024, power);
@@ -394,8 +411,7 @@
             if (format.indexOf('.') === 0) {
                 w = '';
             }
-
-            return ((negP && neg) ? '(' : '') + ((!negP && neg) ? '-' : '') + ((!neg && signed) ? '+' : '') + w + d + ((ord) ? ord : '') + ((abbr) ? abbr : '') + ((bytes) ? bytes : '') + ((negP && neg) ? ')' : '');
+            return ((negP && neg) ? '(' : '') + ((!negP && neg) ? '-' : '') + ((!neg && signed) ? '+' : '') + w + d + ((ord) ? ord : '') + ((abbr && !omitAbbr) ? abbr : '') + ((bytes && !omitAbbr) ? bytes : '') + ((negP && neg) ? ')' : '');
         }
     }
 
@@ -444,7 +460,7 @@
 
         return numeral;
     };
-    
+
     // This function provides access to the loaded language data.  If
     // no arguments are passed in, it will simply return the current
     // global language object.
@@ -452,11 +468,11 @@
         if (!key) {
             return languages[currentLanguage];
         }
-        
+
         if (!languages[key]) {
             throw new Error('Unknown language : ' + key);
         }
-        
+
         return languages[key];
     };
 
@@ -513,14 +529,14 @@
     if ('function' !== typeof Array.prototype.reduce) {
         Array.prototype.reduce = function (callback, opt_initialValue) {
             'use strict';
-            
+
             if (null === this || 'undefined' === typeof this) {
                 // At the moment all modern browsers, that support strict mode, have
                 // native implementation of Array.prototype.reduce. For instance, IE8
                 // does not support strict mode, so this check is actually useless.
                 throw new TypeError('Array.prototype.reduce called on null or undefined');
             }
-            
+
             if ('function' !== typeof callback) {
                 throw new TypeError(callback + ' is not a function');
             }
@@ -554,7 +570,7 @@
         };
     }
 
-    
+
     /**
      * Computes the multiplier necessary to make x >= 1,
      * effectively eliminating miscalculations caused by
@@ -580,7 +596,7 @@
                 mn = multiplier(next);
         return mp > mn ? mp : mn;
         }, -Infinity);
-    }        
+    }
 
 
     /************************************
@@ -595,15 +611,15 @@
         },
 
         format : function (inputString, roundingFunction) {
-            return formatNumeral(this, 
-                  inputString ? inputString : defaultFormat, 
+            return formatNumeral(this,
+                  inputString ? inputString : defaultFormat,
                   (roundingFunction !== undefined) ? roundingFunction : Math.round
               );
         },
 
         unformat : function (inputString) {
-            if (Object.prototype.toString.call(inputString) === '[object Number]') { 
-                return inputString; 
+            if (Object.prototype.toString.call(inputString) === '[object Number]') {
+                return inputString;
             }
             return unformatNumeral(this, inputString ? inputString : defaultFormat);
         },
@@ -635,7 +651,7 @@
             function cback(accum, curr, currI, O) {
                 return accum - corrFactor * curr;
             }
-            this._value = [value].reduce(cback, this._value * corrFactor) / corrFactor;            
+            this._value = [value].reduce(cback, this._value * corrFactor) / corrFactor;
             return this;
         },
 
@@ -654,7 +670,7 @@
                 var corrFactor = correctionFactor(accum, curr);
                 return (accum * corrFactor) / (curr * corrFactor);
             }
-            this._value = [this._value, value].reduce(cback);            
+            this._value = [this._value, value].reduce(cback);
             return this;
         },
 
