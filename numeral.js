@@ -54,6 +54,10 @@
           boundedPrecision = minDecimals;
         }
 
+        // Number.toFixed requires it's argument be between 0 and 20, inclusive.
+        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
+        boundedPrecision = Math.min(boundedPrecision, 20);
+
         power = Math.pow(10, boundedPrecision);
 
         //roundingFunction = (roundingFunction !== undefined ? roundingFunction : Math.round);
